@@ -3,47 +3,25 @@ package commands
 import (
 	"TestProject/internal/eventsdata"
 	"TestProject/internal/tasks"
-	"TestProject/internal/utilities"
-	"errors"
 	"fmt"
 	"github.com/k0kubun/pp"
 	"strings"
 	"time"
 )
 
-func Add(td *tasks.TaskData, ed *eventsdata.EventData) error {
+func Add(td *tasks.TaskData, ed *eventsdata.EventData, event *eventsdata.Event, data []string) error {
 	task := tasks.CreateTask()
-
-	for {
-		taskNameInput, err := utilities.ReadStrings("Введите название задачи:", "Ошибка при вводе названия задачи")
-		if err != nil {
-			return err
-		}
-		event := eventsdata.CreateEvent()
-		event.SetEventInput(taskNameInput)
-		event.SetEventCreationTime(time.Now())
-		taskNameFields := strings.Fields(taskNameInput)
-		if lenHeader := len(taskNameFields); lenHeader == 1 {
-			taskName := taskNameFields[0]
-			task.SetTaskName(taskName)
-			ed.AddEvent(event)
-			break
-		} else {
-			errMsg := "Заголовок должен быть одним непустым словом"
-			fmt.Println(errMsg)
-			event.SetEventDescription(errMsg)
-			ed.AddEvent(event)
-		}
-	}
-
-	taskTextInput, err := utilities.ReadStrings("Введите текст задачи:", "Ошибка при вводе текста задачи")
-	if err != nil {
-		return err
-	}
-	task.SetTaskText(taskTextInput)
 	task.SetTaskCreationTime(time.Now())
+	if len(data) < 2 {
+		fmt.Println("Вы не передали название или описание задачи. Используйте help, чтобы увидеть правильный вид команды.")
+		return nil
+	}
+	taskName := data[0]
+	taskDescription := strings.Join(data[1:], " ")
+	task.SetTaskName(taskName)
+	task.SetTaskText(taskDescription)
 	td.AddTask(task)
-	fmt.Printf("Задача %v была добавлена!\n", task.GetTaskName())
+	fmt.Printf("Задача %v была успешно добавлена!\n", taskName)
 	return nil
 }
 
@@ -63,58 +41,53 @@ func List(td *tasks.TaskData) error {
 	return nil
 }
 
-func Del(td *tasks.TaskData, ed *eventsdata.EventData) error {
-	var taskNameDelete string
-	for {
-		taskNameInput, err := utilities.ReadStrings("Введите название задачи:", "Ошибка при вводе названия задачи")
-		event := eventsdata.CreateEvent()
-		event.SetEventInput(taskNameInput)
-		event.SetEventCreationTime(time.Now())
-		if err != nil {
-			event.SetEventDescription(err.Error())
-			ed.AddEvent(event)
-			return err
-		}
-		taskNameFields := strings.Fields(taskNameInput)
-		if len(taskNameFields) == 1 {
-			taskNameDelete = taskNameFields[0]
-			ed.AddEvent(event)
-			break
-		} else {
-			errMsg := "длина заголовка не может быть больше одного слова"
-			event.SetEventDescription(errMsg)
-			ed.AddEvent(event)
-			fmt.Println(errMsg)
-		}
+func Del(td *tasks.TaskData, ed *eventsdata.EventData, event *eventsdata.Event, data []string) error {
+	event.SetEventCreationTime(time.Now())
+	lenData := len(data)
+	if lenData > 1 {
+		errMsg := "Название задачи не может быть больше одного слова. Используйте help, чтобы увидеть правильный вид команды."
+		fmt.Println(errMsg)
+		event.SetEventDescription(errMsg)
+		ed.AddEvent(*event)
+		return nil
+	} else if lenData == 0 {
+		errMsg := "Вы не ввели название задачи. Используйте help, чтобы увидеть правильный вид команды."
+		fmt.Println(errMsg)
+		event.SetEventDescription(errMsg)
+		ed.AddEvent(*event)
+		return nil
 	}
 
+	taskNameDelete := data[0]
 	taskList := td.GetAllTasks()
 	if _, ok := taskList[taskNameDelete]; !ok {
-		fmt.Printf("Задачи с названием %v не было найдено.\n", taskNameDelete)
+		fmt.Printf("Задачи с названием %v не было найдено. Воспользуйтесь командой 'list' для просмотра существующих задач\n", taskNameDelete)
 	} else {
 		delete(taskList, taskNameDelete)
 		fmt.Printf("Задача с названием %v была успешно удалена!\n", taskNameDelete)
 	}
+	ed.AddEvent(*event)
 	return nil
 }
 
-func Done(td *tasks.TaskData, ed *eventsdata.EventData) error {
-	taskNameInput, err := utilities.ReadStrings("Введите название задачи:", "Ошибка при вводе названия задачи")
-	event := eventsdata.CreateEvent()
-	event.SetEventInput(taskNameInput)
-	if err != nil {
-		event.SetEventDescription(err.Error())
-		ed.AddEvent(event)
-		return err
-	}
-	taskNameFields := strings.Fields(taskNameInput)
-	if len(taskNameFields) > 1 {
-		errMsg := "длина заголовка не может быть больше одного слова"
+func Done(td *tasks.TaskData, ed *eventsdata.EventData, event *eventsdata.Event, data []string) error {
+	event.SetEventCreationTime(time.Now())
+	lenData := len(data)
+	if lenData > 1 {
+		errMsg := "Название задачи не может быть больше одного слова. Используйте help, чтобы увидеть правильный вид команды."
+		fmt.Println(errMsg)
 		event.SetEventDescription(errMsg)
-		ed.AddEvent(event)
-		return errors.New(errMsg)
+		ed.AddEvent(*event)
+		return nil
+	} else if lenData == 0 {
+		errMsg := "Вы не ввели название задачи. Используйте help, чтобы увидеть правильный вид команды."
+		fmt.Println(errMsg)
+		event.SetEventDescription(errMsg)
+		ed.AddEvent(*event)
+		return nil
 	}
-	taskNameUpdate := taskNameFields[0]
+
+	taskNameUpdate := data[0]
 	taskList := td.GetAllTasks()
 	if _, ok := taskList[taskNameUpdate]; !ok {
 		fmt.Printf("Задачи с названием %v не было найдено.\n", taskNameUpdate)
@@ -125,11 +98,11 @@ func Done(td *tasks.TaskData, ed *eventsdata.EventData) error {
 		taskList[taskNameUpdate] = task
 		fmt.Printf("Задача %v была выполнена.\n", taskNameUpdate)
 	}
-
+	ed.AddEvent(*event)
 	return nil
 }
 
-func Events(ed *eventsdata.EventData) error {
+func Event(ed *eventsdata.EventData) error {
 	allEvents := ed.GetAllEvents()
 	fmt.Println("Полный список событий:")
 	for i, _ := range allEvents {
@@ -142,10 +115,10 @@ func Events(ed *eventsdata.EventData) error {
 
 func Help() {
 	fmt.Println("Список доступных команд:")
-	fmt.Println("'add' -> {заголовок задачи из одного слова} -> {текст задачи из одного или нескольких слов} - добавляет задачу")
+	fmt.Println("'add {заголовок задачи из одного слова}  {текст задачи из одного или нескольких слов}' - добавляет задачу")
 	fmt.Println("'list' - позволяет получить полный список задач")
-	fmt.Println("'del' -> {заголовок существующей задачи} - удаляет задачу по её названию")
-	fmt.Println("'done' -> {заголовок существующей задачи} - помечает задачу по её названию как выполненную")
+	fmt.Println("'del {заголовок существующей задачи}' - удаляет задачу по её названию")
+	fmt.Println("'done {заголовок существующей задачи}' - помечает задачу по её названию как выполненную")
 	fmt.Println("'event' - позволяет получить список всех событий")
 	fmt.Println("'exit' - позволяет завершить выполнение программы")
 }
