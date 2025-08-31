@@ -1,18 +1,18 @@
 package tasks
 
 type TaskData struct {
-	tasks []Task
+	tasks map[string]Task
 }
 
 func CreateTaskData() TaskData {
-	taskData := TaskData{}
+	taskData := TaskData{tasks: make(map[string]Task)}
 	return taskData
 }
 
 func (td *TaskData) AddTask(task Task) {
-	td.tasks = append(td.tasks, task)
+	td.tasks[task.GetTaskName()] = task
 }
 
-func (td *TaskData) GetAllTasks() []Task {
+func (td *TaskData) GetAllTasks() map[string]Task {
 	return td.tasks
 }

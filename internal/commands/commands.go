@@ -89,14 +89,12 @@ func Del(td *tasks.TaskData, ed *eventsdata.EventData) error {
 	}
 
 	taskList := td.GetAllTasks()
-	for i, task := range taskList {
-		if taskName := task.GetTaskName(); taskName == taskNameDelete {
-			taskList = append(taskList[:i], taskList[i+1:]...)
-			fmt.Printf("Задача %v была удалена.\n", taskNameDelete)
-			return nil
-		}
+	if _, ok := taskList[taskNameDelete]; !ok {
+		fmt.Printf("Задачи с названием %v не было найдено.\n", taskNameDelete)
+	} else {
+		delete(taskList, taskNameDelete)
+		fmt.Printf("Задача с названием %v была успешно удалена!\n", taskNameDelete)
 	}
-	fmt.Printf("Задачи с названием %v не было найдено.\n", taskNameDelete)
 	return nil
 }
 
@@ -118,15 +116,16 @@ func Done(td *tasks.TaskData, ed *eventsdata.EventData) error {
 	}
 	taskNameUpdate := taskNameFields[0]
 	taskList := td.GetAllTasks()
-	for i, _ := range taskList {
-		if taskName := taskList[i].GetTaskName(); taskName == taskNameUpdate {
-			taskList[i].MakeTaskDone()
-			taskList[i].SetTaskExecutionTime(time.Since(taskList[i].GetTaskCreationTime()))
-			fmt.Printf("Задача %v была выполнена.\n", taskNameUpdate)
-			return nil
-		}
+	if _, ok := taskList[taskNameUpdate]; !ok {
+		fmt.Printf("Задачи с названием %v не было найдено.\n", taskNameUpdate)
+	} else {
+		task := taskList[taskNameUpdate]
+		task.MakeTaskDone()
+		task.SetTaskExecutionTime(time.Since(task.GetTaskCreationTime()))
+		taskList[taskNameUpdate] = task
+		fmt.Printf("Задача %v была выполнена.\n", taskNameUpdate)
 	}
-	fmt.Printf("Задачи с названием %v не было найдено.\n", taskNameUpdate)
+
 	return nil
 }
 
