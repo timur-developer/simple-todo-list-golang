@@ -35,7 +35,7 @@ func List(td *tasks.TaskData) error {
 			}
 		}
 	} else {
-		fmt.Println("Пока вы не добавили ни одной задачи.")
+		fmt.Println("Пока нет существующих задач.")
 	}
 
 	return nil
@@ -61,7 +61,7 @@ func Del(td *tasks.TaskData, ed *eventsdata.EventData, event *eventsdata.Event, 
 	taskNameDelete := data[0]
 	taskList := td.GetAllTasks()
 	if _, ok := taskList[taskNameDelete]; !ok {
-		fmt.Printf("Задачи с названием %v не было найдено. Воспользуйтесь командой 'list' для просмотра существующих задач\n", taskNameDelete)
+		fmt.Printf("Задачи с названием %v не было найдено. Воспользуйтесь командой 'list' для просмотра существующих задач.\n", taskNameDelete)
 	} else {
 		delete(taskList, taskNameDelete)
 		fmt.Printf("Задача с названием %v была успешно удалена!\n", taskNameDelete)
