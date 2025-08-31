@@ -121,7 +121,7 @@ func Done(td *tasks.TaskData, ed *eventsdata.EventData) error {
 	} else {
 		task := taskList[taskNameUpdate]
 		task.MakeTaskDone()
-		task.SetTaskExecutionTime(time.Since(task.GetTaskCreationTime()))
+		task.SetTaskExecutionTime(time.Now())
 		taskList[taskNameUpdate] = task
 		fmt.Printf("Задача %v была выполнена.\n", taskNameUpdate)
 	}

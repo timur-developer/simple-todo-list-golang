@@ -9,7 +9,7 @@ type Task struct {
 	text          string
 	CreationTime  time.Time
 	isDone        bool
-	ExecutionTime time.Duration
+	ExecutionTime *time.Time
 }
 
 func CreateTask() Task {
@@ -29,8 +29,8 @@ func (t *Task) SetTaskCreationTime(time time.Time) {
 	t.CreationTime = time
 }
 
-func (t *Task) SetTaskExecutionTime(time time.Duration) {
-	t.ExecutionTime = time
+func (t *Task) SetTaskExecutionTime(time time.Time) {
+	t.ExecutionTime = &time
 }
 
 func (t *Task) MakeTaskDone() {
@@ -48,7 +48,7 @@ func (t *Task) GetTaskCreationTime() time.Time {
 	return t.CreationTime
 }
 
-func (t *Task) GetTaskExecutionTime() time.Duration {
+func (t *Task) GetTaskExecutionTime() *time.Time {
 	return t.ExecutionTime
 }
 
